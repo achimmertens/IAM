@@ -1,0 +1,1 @@
+podman run -it --rm --network host --name ldap-tools alpine:latest sh -c "apk add --no-cache bash openldap-clients busybox-extras && /bin/bash"

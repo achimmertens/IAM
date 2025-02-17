@@ -1,0 +1,104 @@
+{
+    "resource": {
+      "oid": "99999999-9999-9999-9999-999999999999", 
+      "name": "HR-System (CSV)",
+      "connectorRef": {
+        "type": "ConnectorType",
+        "filter": {
+          "q:equal": {
+            "q:path": "c:connectorType",
+            "q:value": "com.evolveum.polygon.connector.csv.CsvConnector"
+          }
+        }
+      },
+      "connectorConfiguration": {
+        "configurationProperties": {
+          "filePath": "/pfad/zur/hr.csv",
+          "encoding": "utf-8",
+          "fieldDelimiter": ",",
+          "uniqueAttribute": "personalnummer"
+        }
+      },
+      "schemaHandling": {
+        "objectType": {
+          "objectClass": "ri:AccountObjectClass",
+          "kind": "account",
+          "intent": "default",
+          "attribute": [
+            {
+              "ref": "ri:personalnummer",
+              "inbound": [
+                {
+                  "target": {
+                    "path": "$focus/name"
+                  }
+                },
+                {
+                  "target": {
+                    "path": "$focus/employeeNumber"
+                  }
+                }
+              ]
+            },
+            {
+              "ref": "ri:vorname",
+              "inbound": {
+                "target": {
+                  "path": "$focus/givenName"
+                }
+              }
+            },
+            {
+              "ref": "ri:nachname",
+              "inbound": {
+                "target": {
+                  "path": "$focus/familyName"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "synchronization": {
+        "objectSynchronization": {
+          "enabled": true,
+          "correlation": {
+            "q:equal": {
+              "q:path": "employeeNumber",
+              "expression": {
+                "path": "$projection/attributes/personalnummer"
+              }
+            }
+          },
+          "reaction": [
+            {
+              "situation": "linked",
+              "synchronize": true
+            },
+            {
+              "situation": "deleted",
+              "synchronize": true,
+              "action": {
+                "handlerUri": "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"
+              }
+            },
+            {
+              "situation": "unlinked",
+              "synchronize": true,
+              "action": {
+                "handlerUri": "http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"
+              }
+            },
+            {
+              "situation": "unmatched",
+              "synchronize": true,
+              "action": {
+                "handlerUri": "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+  

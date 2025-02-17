@@ -1,0 +1,47 @@
+{
+    "user": {
+      "name": "beispielmitarbeiter", 
+      "givenName": "Max",
+      "familyName": "Mustermann",
+      "fullName": "Max Mustermann",
+      "employeeNumber": "12345",
+      "assignment": [ 
+        {
+          "targetRef": {
+            "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+            "type": "RoleType"
+          }
+        }
+      ]
+    },
+    "user": {
+      "name": "Ali Mente", 
+      "givenName": "Ali",
+      "familyName": "Mente",
+      "fullName": "Ali Mente",
+      "employeeNumber": "12346",
+      "assignment": [ 
+        {
+          "targetRef": {
+            "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+            "type": "RoleType"
+          }
+        }
+      ]
+    },
+    "user": {
+      "name": "Rudi Mente", 
+      "givenName": "Rudi",
+      "familyName": "Mente",
+      "fullName": "Rudi Mente",
+      "employeeNumber": "12347",
+      "assignment": [ 
+        {
+          "targetRef": {
+            "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+            "type": "RoleType"
+          }
+        }
+      ]
+    }
+  }

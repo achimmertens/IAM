@@ -1,0 +1,21 @@
+dn: dc=com
+objectClass: top
+objectClass: domain
+dc: com
+
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+
+dn: ou=users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: cn=admin,dc=example,dc=com
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+description: Directory Manager
+userPassword: 1234

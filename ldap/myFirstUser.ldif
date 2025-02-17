@@ -1,0 +1,13 @@
+dn: uid=john.doe,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: John Doe
+sn: Doe
+uid: john.doe
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/john.doe
+loginShell: /bin/bash
+mail: john.doe@example.com
+userPassword: {SSHA}passwordhash
