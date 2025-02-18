@@ -1,74 +1,26 @@
 # Midpoint LDAP Connection
 
 In dieser Dokumentation möchte ich zeigen, wie man in Midpoint einen User erstellt und diesen nach LDAP überträgt.
-Der User soll in der Lage sein, LDAP zu nutzen um sich an einer Applikation zu authentifizieren.
+
 Ich habe im Vorfeld einen leeren Midpointserver via Podman bei mir lokal gestartet (siehe [hier](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers)) und ebenfsalls einen LDAP Server in einer Podman Installation gestartet.
 
-Was mir jetzt also fehlt ist folgendes:
+Was ich jetzt machen möchte ist folgendes:
 1. auf dem Midpointserver einen User anlegen
-2. eine Appliaktion, die eine Authentifierung über meinen LDAP Server vornimmt
-3. Mein LDAP Server muss mit dem Midpoint server verbunden sein und die Benutzerdaten erhalten.
+2. auf dem Midpointserver User aus einer Datei importieren
+3. Midpoint und LDAP verbinden
+4. Ldap Daten Lesen und in Midpoint importieren
+5. Midpoint User nach LDAP schreiben
 
-Da ich noch nie mit einem LDAP-Server gearbeitet habe, ist es eine gewisse Herausforderung.
+Da ich noch nie sowohl mit Midpoint noch mit einem LDAP-Server gearbeitet habe, ist es eine gewisse Herausforderung.
 Aber legen wir los mit Punkt 1:
-## Anlegen eines Users in Midpoint
-Ich habe mir zunächst einen User namens Achim angelegt:
 
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23w3AVLXt5aff9FNFgbtqKb25AvehnBiT1aZjAe5a2ymWphZBdo8W9humGyjXMm18KYkB.png)
-
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tw5ZFZ9kZy3yyrjvYE8dRRzUEKdyoUYZHpmra1DrpuhBBcfBcBi3qX6NMmrPNZb83fB.png)
-
-----
-# Perplexiy empfiehlt folgende Architektur:
-Um Midpoint, LDAP, Keycloak und Nginx in einem integrierten System für Accountverwaltung und Authentifizierung zu konfigurieren, empfehle ich folgende Architektur:
-Midpoint
-
-    Fungiert als zentrales Identity Management System
-    Verwaltet Benutzerkonten und Berechtigungen
-    Synchronisiert Benutzerdaten mit LDAP
-
-LDAP
-
-    Dient als zentrales Benutzerverzeichnis
-    Wird von Midpoint als primäre Datenquelle verwendet
-    Speichert Benutzer- und Gruppeninformationen
-
-Keycloak
-
-    Fungiert als Identity Provider (IdP) für Single Sign-On
-    Authentifiziert Benutzer gegen LDAP
-    Stellt OAuth 2.0 und OpenID Connect für Anwendungen bereit
-
-Nginx
-
-    Dient als Reverse Proxy und Zugangspunkt für Webanwendungen
-    Leitet Authentifizierungsanfragen an Keycloak weiter
-
-Konfigurationsschritte:
-
-    Midpoint mit LDAP verbinden:
-        Konfigurieren Sie einen LDAP-Ressourcenadapter in Midpoint
-        Richten Sie Synchronisationsaufgaben für Benutzer und Gruppen ein
-    Keycloak mit LDAP integrieren:
-        Konfigurieren Sie einen LDAP-Benutzer-Federation-Provider in Keycloak
-        Stellen Sie sicher, dass Keycloak Benutzer gegen LDAP authentifiziert
-    Nginx mit Keycloak verbinden:
-        Verwenden Sie das OpenID Connect-Modul für Nginx
-        Konfigurieren Sie Nginx, um Authentifizierungsanfragen an Keycloak weiterzuleiten
-    Midpoint als Keycloak-Client einrichten:
-        Registrieren Sie Midpoint als Client in Keycloak
-        Konfigurieren Sie Midpoint für die Verwendung von Keycloak zur Authentifizierung
-
-Diese Konfiguration ermöglicht eine zentralisierte Accountverwaltung durch Midpoint, während Keycloak für SSO und Nginx für sicheren Zugriff auf Webanwendungen sorgt.
-
-# Midpoint mit LDAP verbinden
+# User anlegen auf Midpoint
 ## Starten des Midpoint servers:
 ### Initial:
 Wir wechseln in das Midpoint Verzeichnis, welches [hier](https://github.com/Evolveum/midpoint-docker/tree/master) geholt werden kann und geben ein:
 > podman compose up
 
-[Details](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers)
+Details dazu habe ich [hier](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers) beschrieben.
 
 ### Danach
 Sobald der Server einmal eingerichtet wurde, liegt er als Podman Container vor und kann gestartet werden mit (in der Reihenfolge):
@@ -79,8 +31,11 @@ Sobald der Server einmal eingerichtet wurde, liegt er als Podman Container vor u
 >
 > podman start -a midpoint-midpoint_server-1
 
+Gestoppt wird der Server in der Konsole mit STRG-x oder dem Löschen des Terminals in dem der Server läuft.
+
 ### Reset des Midpoint Servers
-Man könnte auch die Container mit einem "podman compose up" starten und "podman compose down". Die Daten bleiben dabei erhalten, weil sie in einem Volume liegen. Dennoch ist es einfacher, die Container zu stoppen, anstatt sie immer zu löschen und neu anzulegen.
+Man könnte nach der Installation auch die Container mit einem "podman compose up" neu erstellen und mit "podman compose down" löschen. Die Daten bleiben dabei erhalten, weil sie in einem Volume liegen. Dennoch ist es einfacher, die Container zu stoppen, anstatt sie immer zu löschen und neu anzulegen.
+
 Wenn man die Daten aus Midpoint löschen/zurücksetzen will geht das wie folgt:
 > podman compose down
 >
@@ -92,7 +47,82 @@ Wenn man die Daten aus Midpoint löschen/zurücksetzen will geht das wie folgt:
 ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo8KedTu6pANpf3r3wqUDf9e1cUbk6YSXHvhUFdmtQc7s6DxXZbBEPrXdS8VaCYDa8B.png)
 Damit ist der Midpoint Server wieder jungfräulich.
 
-## LDAP Server starten
+## Anlegen eines Users in Midpoint
+In einem Browser geben wir ein: http://localhost:8082/
+Username: Administrator
+Passwort: Test5ecr3t
+
+Ich habe mir zunächst einen User namens Achim angelegt. Dazu bin ich in der Adminoberfläche auf Benutzer gegangen und habe dort mit dem "+" Symbol einfach einen neuen User angelegt
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23w3AVLXt5aff9FNFgbtqKb25AvehnBiT1aZjAe5a2ymWphZBdo8W9humGyjXMm18KYkB.png)
+
+## Import von Usern aus einer Datei
+
+Ich habe eine Datei erstellt mit folgendem Inhalt:
+```
+[
+    {
+        "user": {
+            "name": "beispielmitarbeiter", 
+            "givenName": "Max",
+            "familyName": "Mustermann",
+            "fullName": "Max Mustermann",
+            "employeeNumber": "12345",
+            "assignment": [ 
+                {
+                    "targetRef": {
+                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+                        "type": "RoleType"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "user": {
+            "name": "Ali Mente", 
+            "givenName": "Ali",
+            "familyName": "Mente",
+            "fullName": "Ali Mente",
+            "employeeNumber": "12346",
+            "assignment": [ 
+                {
+                    "targetRef": {
+                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+                        "type": "RoleType"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "user": {
+            "name": "Rudi Mente", 
+            "givenName": "Rudi",
+            "familyName": "Mente",
+            "fullName": "Rudi Mente",
+            "employeeNumber": "12347",
+            "assignment": [ 
+                {
+                    "targetRef": {
+                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
+                        "type": "RoleType"
+                    }
+                }
+            ]
+        }
+    }
+]
+```
+Nach dem Klicken auf das Import Symbol (rechts neben dem "+") konnte ich die User importieren:
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tw5ZFZCjmbYF7pw6GQr7jLy4aNqyFDPn1dtiLb3dhRsaCBGr2X7D8KUCAh3EHuQGBgm.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoH4Eji2JiCof6xx9vpfhiLwm1CM5BCfcjHNoTBCf7Gh7zmXFfnVF89toKvd4vGAQHX.png)
+
+
+
+# LDAP Server starten
 [Hier](https://peakd.com/hive-121566/@achimmertens/installation-eines-ldap-servers-via-podman-image) habe ich beschrieben, wie man einen LDAP-Server erstmalig als Podman Container startet und den ersten User anlegt.
 Nun starten wir diesen Server in einem neuen Bash Terminal erneut mit:
 > podman start -a ldap_server
@@ -105,13 +135,12 @@ Wir schauen, ob der erste User dort noch existiert. Dazu öffnen wir ein neues T
 Der User sollte zu sehen sein:
 ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tRrJB7iT2dncQj4UR8SN32vnz3uCuPbKtGeHrhf7DWGzkSiJqg7MUDYNAeeE75HFPjT.png)
 
-## Midpoint mit LDAP connecten
+# Midpoint mit LDAP connecten
 
-In einem Browser geben wir ein: http://localhost:8082/
-Username: Administrator
-Passwort: Test5ecr3t
+## Manuell
+Um es vorwegzunehmen, der Manuelle Weg klappt bei mir nicht richtig. Ich bekomme zwar eine Testverbiundung hing, kann aber keine Personen Importiern. Ich habe wahrscheinlich etwas übersehen. Dennoch dokumentiere ich hier, wie weit ich gekommen bin, weil einige Erkenntnisse wichtig sind. Ihr könnt das Kapitel überspringen zu "LDAP User Importieren via XML".
 
-... und navigieren zu Ressources/new ressouce/from scratch und wählen dort den LDAP Connector:
+Wir navigieren in Midpoint zu Ressources/new ressouce/from scratch und wählen dort den LDAP Connector:
 
 ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo6Ri48iU6j5UaWAeTUnkQB5egqWAeUjazap9ieDij5KveTSArddugSkjQPJ4EXhLY1.png)
 
@@ -139,68 +168,16 @@ Wir testen, ob es funktioniert:
 
 
 
-# LDAP User importieren
+## LDAP User importieren via XML
 
-Nun möchten wir die User von LDAP in Midpoint importieren. Dazu brauchen wir u.a. ein User Mapping und einen Import Task
+Nun möchten wir die User von LDAP in Midpoint importieren. Dazu brauchen wir eine Ressourcendefinition mit eoinem Usermapping und einen Import Task
 
-Wir können es manuell erstellen:
-## Import Task
+### Resourcendefinition + Mapping 
+Das Usermapping übernehmen wir direkt mit in der XML Datei, die auch die Resourcendefinition erstellt.
+Dazu klicken wir auf Resources/All Resources und dort das Import Symbol:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tcLdrNP59JXHAwHoDUUz3c6QF8bHdTBAYjM6UgQDfJkoZoBQioG9hukaQhZx4JS39Uy.png)
+Dann impotrieren wir folgende Resourcedefinition:
 
-Wir Klicken auf Server Tasks/All Tasks/New Task (Plus Symbol)/Import Task und füllen das Formular wie folgt aus:
-
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EogUbSJTFWbs6QPYkzGqVJSAQFxFHBLcYHecPSdPsiS56Ub4ESKEfbxiv1FYWR1qV5V.png)
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tcNsR1Mjndq9L7bbwnkL8vrbEKg72jqc5VLTirUdbE2M8TKZMGtHqqiJSkgJ32FyKMM.png)
-
-
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/48FmW93k7RjF8PVdz3dxeF6anTKLfPEstuMe9492c38ZZFuoKWDYunyVzrdPSNZr4t.png)
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8AroUDknQ6CV9Jb4tUgP9yQaZg3wT5L4ty1Y3JE81Cj32RGNc94yXKjooSjnAvmvSB.png)
-
-Speichern und laufen lassen:
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSxGH5Jcpz4DdgPgrqjNAVpoBo8f7YXvz1eLKNgd3C8WZLBqshaFx6P4AgKwYMwtuVa.png)
-
-## User Mapping
-Wir erstellen ein Usermapping unter Resources/All Ressources/Achims_LDAP_Connector/Schema Handling/Object Types/Add Object Type:
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8D1e7DZGzEgtVvVpdYs9RVwYdHjr5W3W27W8TUSf1r4TA8d3Xb9xbiVrFy2BdpFctY.png)
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoAgxYiMDmXMeqz95gLCA8GNpB6AbL2MuPBVmsrTHWgeGiKKCAWZC8WeK6UQ4FfYNEQ.png)
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tcNnh1QLT2d2T2v7hvjKBgPPkjCKbDV6FUNEKXFU5YQyHdLrfPq2HqaBHPNXNFy8USf.png)
-
-
-
-Nachdem das Schema Handling Objekt erstellt wurde, muss es editiert werden:
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSx4Cq2DG3pjgwFLzbcBLQnobSBQF2xxPEJfrJ3SjUKXPR6uvrC6XUKjkpc2BkxPcoW.png)
-
-
-Mappings:
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8CoaGtERprEcjasXq6ZiDCadLKz6x7VxyWkzWoPd3dSJZGZLyT5fjLBcfTiHBgDez5.png)
-
-Links in den Namensfeldern einfach die Namen aus dem Ressource Attribut kopieren (Wenn einem nichts besseres einfällt):
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSz8K6X79Lpvd1zNjeet41Xu1xei91qnMwY2EK1mKPdMVk2jwgawWoaDnaSZJ8suguM.png)
-
-## Import Lauf
-Nachdem das Usermapping gemacht wurde, starten wir den ersten Importlauf:
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23u6UYsGX8HZZW1e82hhuuK5zW5GjnRDPX52aKAwXUJbcivhTdcc5m9DaxubvAgBewEPg.png)
-
-
-Beim ersten Lauf des Import Tasks wird es zwar eine Fehlermeldung geben, dass die Account keinem User zugeordnet sind, die Accounts werden aber angelegt.
-Erst nachdem jeder Account mit einem Benutzer verknüpft ist, verschwindet die Fehlermeldung.
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23viREhD9n2GA69fqKcqMZ32pRwpd3dnchatpKC94GxgkHoSPQYqUanGCYprb3Qeo96Lw.png)
-
-
-
-
-
-------
-
-
-
-
-```
 <?xml version="1.0" encoding="UTF-8"?>
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -288,67 +265,7 @@ Erst nachdem jeder Account mit einem Benutzer verknüpft ist, verschwindet die F
                     </target>
                 </inbound>
             </attribute>
-
-            <attribute>
-                <ref>uidNumber</ref>
-                <displayName>UID Number</displayName>
-                <outbound>
-                    <source>
-                        <path>$user/extension/uidNumber</path>
-                    </source>
-                </outbound>
-                <inbound>
-                    <target>
-                        <path>$user/extension/uidNumber</path>
-                    </target>
-                </inbound>
-            </attribute>
-
-            <attribute>
-                <ref>gidNumber</ref>
-                <displayName>GID Number</displayName>
-                <outbound>
-                    <source>
-                        <path>$user/extension/gidNumber</path>
-                    </source>
-                </outbound>
-                <inbound>
-                    <target>
-                        <path>$user/extension/gidNumber</path>
-                    </target>
-                </inbound>
-            </attribute>
-
-            <attribute>
-                <ref>homeDirectory</ref>
-                <displayName>Home Directory</displayName>
-                <outbound>
-                    <source>
-                        <path>$user/extension/homeDirectory</path>
-                    </source>
-                </outbound>
-                <inbound>
-                    <target>
-                        <path>$user/extension/homeDirectory</path>
-                    </target>
-                </inbound>
-            </attribute>
-
-            <attribute>
-                <ref>loginShell</ref>
-                <displayName>Login Shell</displayName>
-                <outbound>
-                    <source>
-                        <path>$user/extension/loginShell</path>
-                    </source>
-                </outbound>
-                <inbound>
-                    <target>
-                        <path>$user/extension/loginShell</path>
-                    </target>
-                </inbound>
-            </attribute>
-        </objectType>
+       </objectType>
     </schemaHandling>
 
     <synchronization>
@@ -377,25 +294,69 @@ Erst nachdem jeder Account mit einem Benutzer verknüpft ist, verschwindet die F
         </objectSynchronization>
     </synchronization>
 </resource>
-```
 
-Nachdem Sie die Ressourcenkonfiguration aktualisiert haben:
+### User Mapping
+Die Usermappings wurden mit dem XML erstellt. Wir brauchen hier eigentlich nichts zu tun. Falls wir doch mal nachschauen oder etwas ändern wollen, geht das wie folgt: Wir finden die Mappings unter Resources/All Ressources/Local LDAP Server/Schema Handling/Object Types:
 
-a) Gehen Sie im MidPoint-Menü zu "Konfiguration" > "Importieren von Objekten".
-b) Wählen Sie Ihre aktualisierte Ressourcenkonfigurationsdatei aus und importieren Sie sie.
-c) Gehen Sie dann zu "Server-Aufgaben" > "Neue Aufgabe".
-d) Wählen Sie "Reconciliation" als Aufgabentyp.
-e) Wählen Sie Ihre LDAP-Ressource als Ziel aus.
-f) Speichern und führen Sie die Aufgabe aus.
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tHZgM8nCqmEW6dzMf8WWEoHHqQNvV4dPzm5iwMuG4yk7SpiF7u3y1CgG8pvypMBUELg.png)
 
-Den Task starten und warten (30 Minuten?). Zumindest taucht der User schon mal im Home Dashboard auf:
+... Mappings:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8CoaGtERprEcjasXq6ZiDCadLKz6x7VxyWkzWoPd3dSJZGZLyT5fjLBcfTiHBgDez5.png)
 
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23xpTggek7SdK56Np9qcjQBkEYhE3nhtLxFLyPGM9ifho7988D1MTeA4zkC44uLEYYtwi.png)
+Wenn man sie verändern will, muss links in den Namensfeldern noch Werte eingetragen werden. Ich habe einfach die Namen aus dem Ressource Attribut kopiert:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSz8K6X79Lpvd1zNjeet41Xu1xei91qnMwY2EK1mKPdMVk2jwgawWoaDnaSZJ8suguM.png)
 
-Nachdem ein Account importiert wurde, kann er einem User zugeordnet werden.
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo2Auffk1YDXaAuaG5DZ46TWLTWRyA2hXSz7VvQFoDKWKcN1ea1GBF9PpYaDF33s4B4.png)
 
-Das kann man sicherlich automatisieren, indem man das Mapping verfeinert, ich breche das hier aber erst mal ab, weil es mir nur darum ging, einen Import durchzuführen.
+
+## Import Task erstellen
+
+Wir Klicken auf Server Tasks/All Tasks/New Task (Plus Symbol)/Import Task und füllen das Formular wie folgt aus:
+
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EogUbSJTFWbs6QPYkzGqVJSAQFxFHBLcYHecPSdPsiS56Ub4ESKEfbxiv1FYWR1qV5V.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tcNsR1Mjndq9L7bbwnkL8vrbEKg72jqc5VLTirUdbE2M8TKZMGtHqqiJSkgJ32FyKMM.png)
+
+So sieht der fertige Task aus:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8CsxKLiC3kqvKUpZYhjqQ1wktWAwfRu7dj826tz156NzkV2F54s7AyHB3oADSu1GgG.png)
+
+
+
+## Import Laufen lassen
+Wir haben nun eine Resourcendefinition mit einem Usermapping und einen Importtask.
+Wir starten nun den ersten Importlauf:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23u6UYsGX8HZZW1e82hhuuK5zW5GjnRDPX52aKAwXUJbcivhTdcc5m9DaxubvAgBewEPg.png)
+
+Die Ergebnisse des Imports stehen unter "Results" oder "Errors":
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tHZbuv1orxBv4KnPrinXgESW7xR6kYJBfrf2kHPN3TCUuHPsz6BHQh5Stub2ZfcSKUz.png)
+
+
+Wenn alles klappt, werden User als Accounts der Ressource zugefügt.
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tmhJWmWEVuZeBm4ZGqAkzBiYhrgHorepvgYZMinfcF1qQXxjNX9Cn5E2Xfr65vyJnZ9.png)
+sie sind damit aber sogenannte Schattenaccounts, die noch mkeinemUser zugeordnet sind. Das könnte man rechts über den Knopf "Change Owner" erledigen, elegantzer ist aber ein Reconciliation Task:
+
+
+
+## Reconcoliation Task erstellen und laufen lassen
+Unter Server Tasks erstellen wir einen neuen Reconciliation Task:
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23vspBrjugvKSdKnUqvFEXogsrdSzoTmUrVtk7uitSZus6ym8hQ2vSDZysA9vMtRxZhCN.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSxLiiHy33yE8XGPtcmF62iD5miRuscjHMuELWuprn4gdsexpHjxHdKmSELYHvRhw28.png)
+
+Dieser importiert die LDAP User auch als User in Midpoint. D.h. es werden zuerst Accounts erstellt und dann User, die mit diesen Accounts verknüpft sind:
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tmj5gRJXkYDDbX2FRE9tBH7xZyaqVJoZvBfowd7HgXBtVq4KYn6yjRAUxmk956T8mPo.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tSxGH5zrQDqK1tkPw1xwvQpyRPmUtUx59fPpTnLK5sG9119M2tT8yeaZ8wWswaex1iM.png)
+
+
+
+
+
+
+
+
+
 
 # User Export nach LDAP
 

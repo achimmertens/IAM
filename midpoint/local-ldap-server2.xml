@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          oid="44444444-4444-4444-4444-000000000000">
+    <name>Local LDAP Server</name>
+    <description>Connection to the local LDAP server</description>
+
+    <!-- Connector-Referenz -->
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <!-- Connector-Konfiguration -->
+    <connectorConfiguration>
+        <icfc:configurationProperties>
+            <icfcldap:host>host.docker.internal</icfcldap:host>
+            <icfcldap:port>3389</icfcldap:port>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=Directory Manager</icfcldap:bindDn>
+            <icfcldap:bindPassword>
+                <t:clearValue>1234</t:clearValue>
+            </icfcldap:bindPassword>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <!-- Schema Handling -->
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <default>true</default>
+            <objectClass>inetOrgPerson</objectClass>
+            <auxiliaryObjectClass>posixAccount</auxiliaryObjectClass>
+
+            <!-- Attribute-Mapping -->
+            <attribute>
+                <ref>uid</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>cn</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>sn</ref>
+                <displayName>Last Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$user/familyName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$user/familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+       </objectType>
+    </schemaHandling>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$account/attributes/uid</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>
