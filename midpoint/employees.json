@@ -13,7 +13,10 @@
                       "type": "RoleType"
                   }
               }
-          ]
+          ],
+          "activation": {
+              "administrativeStatus": "enabled"
+          }
       }
   },
   {

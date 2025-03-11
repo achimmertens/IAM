@@ -61,6 +61,7 @@ services:
      - net
     volumes:
      - midpoint_home:/opt/midpoint/var
+     - ./:/opt/midpoint/var/import:Z
 
 networks:
   net:

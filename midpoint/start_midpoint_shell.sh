@@ -1,0 +1,1 @@
+podman exec -it midpoint-midpoint_server-1 bin/bash
