@@ -4,14 +4,15 @@
         {
             "label": "Start All Services",
             "dependsOn": [
-                "Start Midpoint Server",
-                "Start Midpoint Shell",
-                "Start Keycloak Server",
-                "Start LDAP Server",
-                "Start LDAP Client",
-                "Start Nginx"
+                "Midpoint Server",
+                "Midpoint Shell",
+                "Keycloak Server",
+                "LDAP Server",
+                "LDAP Shell",
+                "Nginx Server"
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
             "label": "Midpoint Server",
@@ -26,12 +27,13 @@
                 "clear": true,
                 "title": "Midpoint Server"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
             "label": "Midpoint Shell",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/midpoint && ./start_midpoint_shell.sh",
+            "command": "sleep 20 && cd ${workspaceFolder}/midpoint && ./start_midpoint_shell.sh",
             "options": {
                 "cwd": "${workspaceFolder}/midpoint"
             },
@@ -41,7 +43,8 @@
                 "clear": true,
                 "title": "Midpoint Shell"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
             "label": "Keycloak Server",
@@ -56,7 +59,8 @@
                 "clear": true,
                 "title": "Keycloak Server"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
             "label": "LDAP Server",
@@ -71,12 +75,13 @@
                 "clear": true,
                 "title": "LDAP Server"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
-            "label": "LDAP Client",
+            "label": "LDAP Shell",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/ldap && ./start_ldap_client.sh",
+            "command": "sleep 20 && cd ${workspaceFolder}/ldap && ./start_ldap_client.sh",
             "options": {
                 "cwd": "${workspaceFolder}/ldap"
             },
@@ -86,10 +91,11 @@
                 "clear": true,
                 "title": "LDAP Client"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         },
         {
-            "label": "Nginx",
+            "label": "Nginx Server",
             "type": "shell",
             "command": "cd ${workspaceFolder}/nginx && ./start_nginx.sh",
             "options": {
@@ -101,7 +107,8 @@
                 "clear": true,
                 "title": "Nginx"
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "isBackground": true
         }
     ]
 }
