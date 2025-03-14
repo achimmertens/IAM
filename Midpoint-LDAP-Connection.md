@@ -1,126 +1,14 @@
 # Midpoint LDAP Connection
 
-In dieser Dokumentation möchte ich zeigen, wie man in Midpoint einen User erstellt und diesen nach LDAP überträgt.
+In dieser Dokumentation möchte ich zeigen, wie man in Midpoint User nach LDAP überträgt.
 
 Ich habe im Vorfeld einen leeren Midpointserver via Podman bei mir lokal gestartet (siehe [hier](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers)) und ebenfsalls einen LDAP Server in einer Podman Installation gestartet.
 
-Was ich jetzt machen möchte ist folgendes:
-1. auf dem Midpointserver einen User anlegen
-2. auf dem Midpointserver User aus einer Datei importieren
-3. Midpoint und LDAP verbinden
-4. Ldap Daten Lesen und in Midpoint importieren
-5. Midpoint User nach LDAP schreiben
+Dann habe ich User mit einer hr.csv Datei i8n Midpoint importiert. Siehe hier:
 
-Da ich noch nie sowohl mit Midpoint noch mit einem LDAP-Server gearbeitet habe, ist es eine gewisse Herausforderung.
-Aber legen wir los mit Punkt 1:
+Nun möchte ich diese User in meinen LDAP Server übertragen.
 
-# User anlegen auf Midpoint
-## Starten des Midpoint servers:
-### Initial:
-Wir wechseln in das Midpoint Verzeichnis, welches [hier](https://github.com/Evolveum/midpoint-docker/tree/master) geholt werden kann und geben ein:
-> podman compose up
-
-Details dazu habe ich [hier](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers) beschrieben.
-
-### Danach
-Sobald der Server einmal eingerichtet wurde, liegt er als Podman Container vor und kann gestartet werden mit (in der Reihenfolge):
-
-> podman start midpoint-midpoint_data-1
-> 
-> podman start midpoint-data_init-1
->
-> podman start -a midpoint-midpoint_server-1
-
-Gestoppt wird der Server in der Konsole mit STRG-x oder dem Löschen des Terminals in dem der Server läuft.
-
-### Reset des Midpoint Servers
-Man könnte nach der Installation auch die Container mit einem "podman compose up" neu erstellen und mit "podman compose down" löschen. Die Daten bleiben dabei erhalten, weil sie in einem Volume liegen. Dennoch ist es einfacher, die Container zu stoppen, anstatt sie immer zu löschen und neu anzulegen.
-
-Wenn man die Daten aus Midpoint löschen/zurücksetzen will geht das wie folgt:
-> podman compose down
->
-> podman volume rm midpoint_midpoint_data
->
-> podman compose up
-
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo8KedTu6pANpf3r3wqUDf9e1cUbk6YSXHvhUFdmtQc7s6DxXZbBEPrXdS8VaCYDa8B.png)
-Damit ist der Midpoint Server wieder jungfräulich.
-
-## Anlegen eines Users in Midpoint
-In einem Browser geben wir ein: http://localhost:8082/
-Username: Administrator
-Passwort: Test5ecr3t
-
-Ich habe mir zunächst einen User namens Achim angelegt. Dazu bin ich in der Adminoberfläche auf Benutzer gegangen und habe dort mit dem "+" Symbol einfach einen neuen User angelegt
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23w3AVLXt5aff9FNFgbtqKb25AvehnBiT1aZjAe5a2ymWphZBdo8W9humGyjXMm18KYkB.png)
-
-## Import von Usern aus einer Datei
-
-Ich habe eine Datei erstellt mit folgendem Inhalt:
-```
-[
-    {
-        "user": {
-            "name": "beispielmitarbeiter", 
-            "givenName": "Max",
-            "familyName": "Mustermann",
-            "fullName": "Max Mustermann",
-            "employeeNumber": "12345",
-            "assignment": [ 
-                {
-                    "targetRef": {
-                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
-                        "type": "RoleType"
-                    }
-                }
-            ]
-        }
-    },
-    {
-        "user": {
-            "name": "Ali Mente", 
-            "givenName": "Ali",
-            "familyName": "Mente",
-            "fullName": "Ali Mente",
-            "employeeNumber": "12346",
-            "assignment": [ 
-                {
-                    "targetRef": {
-                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
-                        "type": "RoleType"
-                    }
-                }
-            ]
-        }
-    },
-    {
-        "user": {
-            "name": "Rudi Mente", 
-            "givenName": "Rudi",
-            "familyName": "Mente",
-            "fullName": "Rudi Mente",
-            "employeeNumber": "12347",
-            "assignment": [ 
-                {
-                    "targetRef": {
-                        "oid": "86d3b462-2334-11ea-bbac-13d84ce0a1df",
-                        "type": "RoleType"
-                    }
-                }
-            ]
-        }
-    }
-]
-```
-Nach dem Klicken auf das Import Symbol (rechts neben dem "+") konnte ich die User importieren:
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tw5ZFZCjmbYF7pw6GQr7jLy4aNqyFDPn1dtiLb3dhRsaCBGr2X7D8KUCAh3EHuQGBgm.png)
-
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoH4Eji2JiCof6xx9vpfhiLwm1CM5BCfcjHNoTBCf7Gh7zmXFfnVF89toKvd4vGAQHX.png)
-
-
+To be continued ................
 
 # LDAP Server starten
 [Hier](https://peakd.com/hive-121566/@achimmertens/installation-eines-ldap-servers-via-podman-image) habe ich beschrieben, wie man einen LDAP-Server erstmalig als Podman Container startet und den ersten User anlegt.
@@ -368,3 +256,6 @@ Dieser importiert die LDAP User auch als User in Midpoint. D.h. es werden zuerst
 
 Wir können nun in Midpoint sehen, welche LDAP User es gibt und diese auch importieren:
 ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tHZbuWV3DhnCbqE2hjvMH3T5NvmH4KFxnoSK48MJGHUcwEdED8wFdXqBL1Ug57CqbJf.png)
+
+
+

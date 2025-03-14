@@ -1,0 +1,107 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start All Services",
+            "dependsOn": [
+                "Start Midpoint Server",
+                "Start Midpoint Shell",
+                "Start Keycloak Server",
+                "Start LDAP Server",
+                "Start LDAP Client",
+                "Start Nginx"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Midpoint Server",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/midpoint && ./start_midpoint_server.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/midpoint"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "Midpoint Server"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Midpoint Shell",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/midpoint && ./start_midpoint_shell.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/midpoint"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "Midpoint Shell"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Keycloak Server",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/keycloak && ./start_keycloak_server.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/keycloak"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "Keycloak Server"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "LDAP Server",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/ldap && ./start_ldap_server.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/ldap"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "LDAP Server"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "LDAP Client",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/ldap && ./start_ldap_client.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/ldap"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "LDAP Client"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Nginx",
+            "type": "shell",
+            "command": "cd ${workspaceFolder}/nginx && ./start_nginx.sh",
+            "options": {
+                "cwd": "${workspaceFolder}/nginx"
+            },
+            "presentation": {
+                "reveal": true,
+                "panel": "new",
+                "clear": true,
+                "title": "Nginx"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
