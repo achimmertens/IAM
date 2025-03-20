@@ -1,0 +1,25 @@
+dn: uid=johny.depp,ou=users,dc=example,dc=com
+changetype: modify
+replace: cn
+cn: Johny Depp
+-
+replace: sn
+sn: Depp
+-
+replace: uid
+uid: johny.depp
+-
+replace: uidNumber
+uidNumber: 1000
+-
+replace: gidNumber
+gidNumber: 1000
+-
+replace: homeDirectory
+homeDirectory: /home/johny.depp
+-
+replace: loginShell
+loginShell: /bin/bash
+-
+replace: userPassword
+userPassword: newpassword
