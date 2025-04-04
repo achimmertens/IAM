@@ -36,3 +36,4 @@ podman cp -a midpoint-midpoint_server-1:/opt/midpoint/var/keystore.jceks ./keyst
 podman stop midpoint-midpoint_server-1
 podman stop midpoint-midpoint_data-1
 podman compose up midpoint_restore
+podman compose up
