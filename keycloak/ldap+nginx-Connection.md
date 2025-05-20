@@ -62,7 +62,7 @@ Gehen Sie zu http://localhost:8081
 Melden Sie sich als admin/admin an
 Gehen Sie zu User Federation
 Fügen Sie einen neuen LDAP Provider hinzu mit den folgenden Einstellungen:
-Connection URL: ldap://ldap_server:3389
+Connection URL: ldap://10.89.1.7:3389
 Enable StartTLS: OFF
 Bind Type: simple
 Bind DN: cn=Directory Manager
@@ -75,4 +75,35 @@ User Object Classes: inetOrgPerson, organizationalPerson, person
 
 
 ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoCnzmcLgg5fFaU3PgzHfjrYQAbdgDGYVrgsZs3D8mRGjhL8tjJQCiRbddLCet2ED4V.png)
-![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23sxjvEnxiQr4LNBBCPwLampyBpHByufQfi1FLGX5TkeeSByeeDHitXs7HH5dFTpXD5PA.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23sxjqWgwoEvxzZ3JbBQKhAyUrYEYZbVWxP3C6AJwToKhs1QPg1Ue7S4cv2Viod4Sh4md.png)
+
+
+----
+
+# nginx konfiguration
+
+podman exec nginx_webserver nginx -T
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo44Mxh1jEraZc4TuRYRzHCSoqBfaAEnVUzWmJw4DNdHHPFWN8FanWBPTJZmDgGC5pd.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tGVdRvEcMNpy61VFfQFGkFGjNayZL568Na9easbczbHZMuEpMCf8F3VDujmhM61eEHA.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23swibA2TesgnqoyuiLNMSwVQnqGqB4jXGKmh1Cu4y87fL12nqFdZZwEWEN5v7gooe7Yp.png)
+
+Ja, die Konfiguration wurde korrekt geladen! Wir sehen:
+
+Die auth_request Module sind aktiviert
+
+Die Keycloak-Integration ist konfiguriert
+
+Die OAuth2-Endpunkte sind eingerichtet
+
+podman exec nginx_webserver nginx -s reload
+
+Let's update the index.html to include a proper protected page:
+
+index.html+19-4
+
+Nach dem Redirect auf den KEycloakserver muss noch  mehr gemacht werden:
+curl -X POST http://localhost:8081/realms/master/protocol/openid-connect/token -d "client_id=admin-cli" -d "username=admin" -d "password=admin" -d "grant_type=password"
