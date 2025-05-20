@@ -1,2 +1,11 @@
-# podman run -d -p 3389:3389 -p 3636:3636 -e DS_DM_PASSWORD=1234 --name ldap_server 389ds/dirsrv:latest
+# Start the LDAP server with network configuration
+
+# podman run --network iam_network \
+#  -p 3389:3389 -p 3636:3636 \
+#  --name ldap_server \
+#  -e DS_DM_PASSWORD=1234 \
+#  -e DS_SUFFIX_NAME="dc=example,dc=com" \
+#  -v ldap_data:/data \
+#  389ds/dirsrv
+
 podman start -a ldap_server
