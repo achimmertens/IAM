@@ -1,0 +1,63 @@
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log notice;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+    error_log /var/log/nginx/error.log debug;
+    
+    # Keycloak-Proxy-Konfiguration
+    server {
+        listen 80;
+        server_name localhost;
+
+        # Basis-URL für Keycloak
+        set $keycloak_base_url "http://10.89.0.9:8080";
+        set $public_url "http://localhost:8081";
+
+        location / {
+            # Authentifizierung über Keycloak
+            proxy_pass $keycloak_base_url;
+            
+            # Headers für Keycloak
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # URL-Umschreibung
+            proxy_redirect $keycloak_base_url $public_url;
+            
+            # OpenID Connect Parameter
+            set $oidc_params "?response_type=code&client_id=nginx-client&redirect_uri=$public_url/callback&scope=openid%20profile%20email";
+            if ($request_uri ~ "^/realms/master/protocol/openid-connect/auth") {
+                rewrite ^(.*)$ $1$oidc_params redirect;
+            }
+            
+            # Statische Inhalte
+            root /usr/share/nginx/html;
+            index index.html;
+        }
+
+        # Callback-Endpunkt
+        location /callback {
+            proxy_pass $keycloak_base_url/realms/master/protocol/openid-connect/token;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
