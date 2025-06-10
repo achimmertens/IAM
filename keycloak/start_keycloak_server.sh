@@ -1,6 +1,6 @@
 # Start Keycloak server with network configuration
 podman run -p 8081:8080 \
-  --network iam_network \
+  --network midpoint_net \
   -e KEYCLOAK_ADMIN=admin \
   -e KEYCLOAK_ADMIN_PASSWORD=admin \
   -e KC_PROXY=edge \
