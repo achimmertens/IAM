@@ -129,7 +129,8 @@ podman run -p 8081:8080 \
 1. Öffnen Sie http://localhost:8081
 2. Login mit admin/admin
 3. Gehen Sie zu "User Federation"
-4. Fügen Sie einen neuen LDAP-Provider hinzu:
+4. ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tvwZVmmK4w4vHRiLwjQkSKyyp9TeS32C26eWCqLsisTrcy2AZRytuJCXy2j75qhXiFH.png)
+5. Fügen Sie einen neuen LDAP-Provider hinzu:
    - Connection URL: ldap://[LDAP-IP]:3389 (IP mit `podman inspect ldap_server` ermitteln)
    - Enable StartTLS: OFF
    - Bind Type: simple
@@ -140,8 +141,15 @@ podman run -p 8081:8080 \
    - RDN LDAP attribute: uid
    - UUID LDAP attribute: entryUUID
    - User Object Classes: inetOrgPerson, organizationalPerson, person
-5. Klicken Sie auf "Test connection"
-6. Speichern Sie und klicken Sie auf "Synchronize all users"
+6. Klicken Sie auf "Test connection"
+7. Speichern Sie und klicken Sie auf "Synchronize all users"
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoCnzmcLgg5fFaU3PgzHfjrYQAbdgDGYVrgsZs3D8mRGjhL8tjJQCiRbddLCet2ED4V.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23sxjqWgwoEvxzZ3JbBQKhAyUrYEYZbVWxP3C6AJwToKhs1QPg1Ue7S4cv2Viod4Sh4md.png)
+
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/48GFLC3H7PU5dyyUz3rjornt7GqPrJeSCoLKq4MZ9A88n6ZgijuQ9JhYxbNeTrPNSM.png)
 
 ### 3.3 Client für Nginx erstellen
 1. Gehen Sie zu "Clients" → "Create client"
@@ -152,6 +160,11 @@ podman run -p 8081:8080 \
    - Web origins: http://localhost:8080
 3. Speichern Sie die Änderungen
 4. Notieren Sie sich das Client Secret aus dem "Credentials" Tab
+   ![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23xL9TJubBcqUn3yBAotn7vNA59ntricJ9UoG2fcyV1vZAQZYkvDvhVpdiGCx4ThCrj65.png)
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8CfKjHAuGbhZL3pLwjGFSxCW3mMgi2QaPMstXFJUw9Y2i2tLTuXTTiwhg1HHdsF7pL.png)
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8DBnQEzrxfcQ3dcEddaQERrw8jKu4SrzSrkjp1AcwTbCLvUAJ6GGv7671s6Q8G679v.png)
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8DBnQFMQYTUGzWNC3auHikYCQRJXCKz2pus2y8QCvkcadbeBg6JzNf5dDVfpFNUmNx.png)
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23t8CSPYK3e3KY4cN54pMfvExFmYZa5NHGeE4bPjvHCwMc3X31qrRpwGriYpejrjhJhbu.png)
 
 ## 4. Nginx Setup
 
