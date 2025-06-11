@@ -1,11 +1,60 @@
-# Vollständiger IAM-Stack: MidPoint, LDAP, Keycloak und Nginx Integration
+Hallo zusammen,
 
-Diese Dokumentation beschreibt die vollständige Integration eines Identity and Access Management (IAM) Stacks bestehend aus MidPoint, LDAP, Keycloak und Nginx. Der Stack ermöglicht:
+ich soll für einen Kunden ein Identity und Account Management System in Betrieb nehmen. Da das Ganze in der Firmenumgebung kompliziert genug ist, teste ich es vorher bei mir lokal aus. Jetzt habe ich einen Durchbruch erzielt.
 
-1. Benutzer-Management in MidPoint
-2. Synchronisation der Benutzer mit LDAP
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23x1YcPD68Y7aduQ5aYP9sRcpKXJfF5CNraMSxEPwqnbShKgpmjHoXg6MtBxbfjqtdHH6.png)
+
+
+Ich habe im Vorfeld schon folgendes dokumentiert:
+1. Installation eines leeren Midpointservers (IGA) via Podman  (siehe [Stufe 1](https://peakd.com/hive-139531/@achimmertens/installation-eines-midpoint-docker-containers))
+2. Installation eines LDAP Podman Servers (siehe [Stufe 2](https://peakd.com/hive-121566/@achimmertens/installation-eines-ldap-servers-via-podman-image))
+3. Installation eines Keyclock Podman Servers (siehe [Stufe 3](https://peakd.com/hive-121566/@achimmertens/keycloak-eine-software-die-den-zugriff-regelt))
+4.  Ein hr.csv Import in den Midpoint Server (siehe [Stufe 4](https://peakd.com/hive-121566/@achimmertens/wie-man-eine-hrcsv-user-datei-in-dem-iga-server-midpoint-importiert))
+5.  User Export von Midpoint nach LDAP (siehe [Stufe 5](https://peakd.com/hive-121566/@achimmertens/wie-man-mit-dem-iga-server-midpoint-hr-user-nach-ldap-exportiert))
+6. Backup & Restore (siehe [Stufe 6](https://peakd.com/hive-121566/@achimmertens/backup-und-restore-einer-postgresql-datenbank-im-midpoint-container))
+
+
+Diese Dokumentation (Stufe 7 + 8) beschreibt die vollständige Integration eines Identity and Access Management (IAM) Stacks bestehend aus MidPoint, LDAP, Keycloak und Nginx mit dem Schwerpunkt auf die beiden letzten Server, die bisher noch fehlten. Dieser gesamte Stack ermöglicht hiermit:
+
+1. Benutzer-Management in MidPoint (Zusammenfassung)
+2. Synchronisation der Benutzer mit LDAP (Zusammenfassung)
 3. SSO-Authentifizierung über Keycloak
 4. Geschützte Webseiten mit Nginx
+
+Inhalt:
+
+
+- [1. Systemarchitektur \& Netzwerk-Setup](#1-systemarchitektur--netzwerk-setup)
+  - [1.1 Komponenten](#11-komponenten)
+  - [1.2 Netzwerk-Setup](#12-netzwerk-setup)
+- [2. MidPoint Setup und LDAP-Integration](#2-midpoint-setup-und-ldap-integration)
+  - [2.1 MidPoint Container starten](#21-midpoint-container-starten)
+  - [2.2 LDAP Resource in MidPoint konfigurieren](#22-ldap-resource-in-midpoint-konfigurieren)
+  - [2.3 Benutzer von MidPoint nach LDAP synchronisieren](#23-benutzer-von-midpoint-nach-ldap-synchronisieren)
+- [3. LDAP-Server Setup](#3-ldap-server-setup)
+  - [3.1 Container starten](#31-container-starten)
+  - [3.2 LDAP-Benutzer anlegen](#32-ldap-benutzer-anlegen)
+- [3. Keycloak Setup](#3-keycloak-setup)
+  - [3.1 Container starten](#31-container-starten-1)
+  - [3.2 LDAP-Integration in Keycloak einrichten](#32-ldap-integration-in-keycloak-einrichten)
+  - [3.3 Client für Nginx erstellen](#33-client-für-nginx-erstellen)
+- [4. Nginx Setup](#4-nginx-setup)
+  - [4.1 Nginx Konfiguration](#41-nginx-konfiguration)
+    - [Erstellen Sie die Datei `default.conf`:](#erstellen-sie-die-datei-defaultconf)
+    - [nginx.conf](#nginxconf)
+  - [4.2 Container starten](#42-container-starten)
+- [5. Testing](#5-testing)
+- [6. Fehlersuche und Debugging](#6-fehlersuche-und-debugging)
+  - [LDAP-Verbindung testen](#ldap-verbindung-testen)
+  - [LDAP-IP ermitteln](#ldap-ip-ermitteln)
+  - [Nginx-Logs anzeigen](#nginx-logs-anzeigen)
+  - [Keycloak-Logs anzeigen](#keycloak-logs-anzeigen)
+  - [Container-Status überprüfen](#container-status-überprüfen)
+  - [Netzwerk-Debugging](#netzwerk-debugging)
+  - [Häufige Probleme und Lösungen](#häufige-probleme-und-lösungen)
+- [7. Fazit](#Fazit)
+
 
 ## 1. Systemarchitektur & Netzwerk-Setup
 
@@ -16,6 +65,13 @@ Das System besteht aus vier Hauptkomponenten, die alle in separaten Podman-Conta
 3. Keycloak-Server: Handhabt die Authentifizierung
 4. Nginx-Server: Stellt die geschützte Webseite bereit
 
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tGVGGcKpb5f13a8kGnCoVJzsYmZpjyh3A61Kjm14XxU8KtgB1nE97ZJqsuEnQSpqHMX.png)
+*Alle beteiligten Podman Container*
+
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/EoH4e71EumyDdHH61dv9gcCMgbhTPAzHewKfuJf8LMeYYKwZqFtu8riCSuf2ZP3WRz7.png)
+*Screenshot aller vier aktiven Komponenten*
 ### 1.2 Netzwerk-Setup
 ```bash
 # Prüfen Sie zuerst, ob bereits Netzwerke existieren
@@ -37,6 +93,11 @@ podman exec -it nginx_server ping keycloak_server
 podman exec -it keycloak_server ping ldap_server
 ```
 
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tGVdSFSEqkExaLw1HtxUhuoV5yCXzUwfJHYPLhK58UvLDcCmQKYXzPXvfzQJk4owcqf.png)
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tRtNAe7kcp66BmZhhnRvmXPyGhj5bHyZDE1br5o1ZKsAc2i2uxh6VjAwnKTHrKw4qwH.png)
+
+
 ## 2. MidPoint Setup und LDAP-Integration
 
 ### 2.1 MidPoint Container starten
@@ -49,7 +110,7 @@ podman start -a midpoint-midpoint_server-1
 
 ### 2.2 LDAP Resource in MidPoint konfigurieren
 1. Öffnen Sie http://localhost:8080/midpoint
-2. Loggen Sie sich als Administrator ein (admin/5ecr3t)
+2. Loggen Sie sich als Administrator ein (administrator/Test5ecr3t)
 3. Gehen Sie zu Configuration → Resources
 4. Erstellen Sie eine neue Resource:
    - Name: LDAP-Server
@@ -66,6 +127,8 @@ podman start -a midpoint-midpoint_server-1
      </configuration>
      ```
 
+
+
 ### 2.3 Benutzer von MidPoint nach LDAP synchronisieren
 1. Erstellen Sie einen neuen Benutzer in MidPoint
 2. Weisen Sie dem Benutzer die LDAP-Resource zu
@@ -77,6 +140,11 @@ podman start -a midpoint-midpoint_server-1
      -b "ou=users,dc=example,dc=com" "(uid=neuerbenutzer)"
    ```
 
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tHZPqFWT4nUkEPTiNua2h1GQeRh9a4vkz2AUyU4uLibj1GpYvE93U8soTyjjZsvQZHV.png)
+*Dem Benutzer "029" wird die Resource "LDAP" zugewiesen*
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tRvE6g4YLXWWh53ZhsM5FAnQ8aqnLWDTPYwGpYXVKNAwFFbnNRzd2zByGNuK5bXvxmT.png)
+*Da die Resource "LDAP" sauber funktioniert (Konfiguration siehe [hier](https://peakd.com/hive-121566/@achimmertens/wie-man-mit-dem-iga-server-midpoint-hr-user-nach-ldap-exportiert)), wird der User sofort nach dem Speichern zum LDAP-Server synchronisiert*
 
 
 ## 3. LDAP-Server Setup
@@ -96,7 +164,7 @@ podman run --network midpoint_net \
 # podman start -a ldap_server
 ```
 
-### 3.2 LDAP-Benutzer anlegen
+### 3.2 LDAP-Benutzer anzeigen
 Ein Beispielbenutzer ist bereits angelegt:
 - Username: john.doe
 - Password: password
@@ -106,6 +174,9 @@ Um weitere Benutzer anzuzeigen:
 ```bash
 podman exec ldap_server ldapsearch -x -H ldap://localhost:3389 -D "cn=Directory Manager" -w 1234 -b "ou=users,dc=example,dc=com" "(objectClass=inetOrgPerson)"
 ```
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/Eo43uki9Qb3ebuDjbh2j2xkwjenBKtp8m8ta96AK78x6hpysp6p4mX35YLb48MX9Xde.png)
+
 
 ## 3. Keycloak Setup
 
@@ -154,7 +225,7 @@ podman run -p 8081:8080 \
 ### 3.3 Client für Nginx erstellen
 1. Gehen Sie zu "Clients" → "Create client"
 2. Konfigurieren Sie:
-   - Client ID: achimsclient
+   - Client ID: nginx-client
    - Client authentication: ON
    - Valid redirect URIs: http://localhost:8080/oauth2/callback
    - Web origins: http://localhost:8080
@@ -346,6 +417,13 @@ podman run --name nginx_webserver \
 4. Nach erfolgreicher Anmeldung werden Sie zur geschützten Seite weitergeleitet
 
 
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/244ojeAQQaVUNQyUyUdvwZkEuaYnLAWUtdjumLBPLc78ByL5nAd3A21dMeGAHL759qWX6.png)
+
+
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tw7oNjU4grG6BLYihs3fU8rj6Ggyrhqr3xcsZFwtq47EmjrPbBh6YJEpyv6MW5FCjcy.png)
+
+
+
 ## 6. Fehlersuche und Debugging
 
 ### LDAP-Verbindung testen
@@ -413,3 +491,12 @@ podman network inspect midpoint_net
    - Stellen Sie sicher, dass /welcome.html nicht geschützt ist
    - Überprüfen Sie die Auth-Request-Konfiguration
    - Prüfen Sie die Cookie-Handhabung
+
+# Fazit
+Jetzt können wir nach belieben User in Midpoint importieren und dort nach allen Regeln der Kunst verwalten (Rechte und Rollen verteilen, Passwortmanagement, Auditprozesse,...). Diese User können wir an (beliebige) LDAP-Server weiterreichen. Der Keycloak, der zustängig ist für Access Management (Single Sign on, Multi Faktor Authentifizierung,...) sorgt dafür, dass der User sich anmelden kann. Und Nginx wird dann an Keycloak angebunden, so dass gewährleistet wird, dass nur die User auf die Webseite zugreifen können, die dass auch dürfen. Über ein Rollenmanagement, dass in der Webseite hinterlegt werden und mit Midpoint synchronisiert werden kann, wird gewährleistet, dass der User sich nicht nur authentifizieren, sondern auch für die jeweiligen Bedürfnisse (Rechte und Einschränkungen) autorisieren kann.
+
+Der komplette Code befindet sich übrigens hier: https://github.com/achimmertens/IAM
+
+Details werden bstimmt noch folgen, so stay tuned,
+
+Achim Mertens
