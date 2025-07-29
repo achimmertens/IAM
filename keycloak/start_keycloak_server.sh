@@ -13,3 +13,4 @@
 #    quay.io/keycloak/keycloak:21.0.2 \
 #    start-dev
 podman start keycloak_server -a
+bash d:/IAM/update_container_ips.sh
