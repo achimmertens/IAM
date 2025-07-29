@@ -15,12 +15,23 @@
             margin: 20px auto;
             max-width: 600px;
         }
+        .token {
+            word-break: break-all;
+            background: #fff;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+            text-align: left;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
     <div class="welcome-box">
-        <h1>Willkommen!</h1>
-        <p>Sie wurden erfolgreich authentifiziert.</p>
+        <h1>Willkommen ${auth_given_name}!</h1>
+        <p>Du hast dich erfolgreich angemeldet.</p>
+        <p>Dein Access Token lautet:</p>
+        <div class="token">${auth_token}</div>      
     </div>
 </body>
 </html>

@@ -374,8 +374,17 @@ http {
 }
 
 ```
+### 4.2 Webseite vorbereiten
+Es muss eine Webseite existieren, die Leserechte für nicht-Root User hat. Auch das html-Verzeichnis muss von außen geöffnet, also mit x-Rechten versehen werden:
+> chmod 755 .../nginx/html
+> chmod 644 .../nginx/html/*
 
-### 4.2 Container starten
+![grafik.png](https://files.peakd.com/file/peakd-hive/achimmertens/23tRxSKLyHjMsge9bHDNruaw1TQMREiss1waMczAXr6qrC8LjeeKXG3LouMd7yogEX7Yd.png)
+
+Ansonsten erhält man die Fehlermeldung  "403 Forbidden".
+
+
+### 4.3 Container starten
 ```bash
 # Start Nginx server with network configuration
 podman stop nginx_webserver || true

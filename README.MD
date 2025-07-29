@@ -10,3 +10,5 @@ Mit Strg+Shift+p den Befehl "Run Tasks" eingeben und dann "Start All Services" a
    - Öffnen der LDAP Shell
    - ldapsearch -x -H ldap://localhost:3389 -D "cn=Directory Manager" -w 1234 -b "dc=example,dc=com"
 
+IP-Adressen überprüfen:
+podman inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(podman ps -q)

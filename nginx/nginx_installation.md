@@ -21,3 +21,25 @@ Der Container wird gestoppt mit
 ...und gestartet mit:
 > podman start nginx-webserver
 
+
+    # Welcome page with user info
+    location = /welcome.html {
+        root /usr/share/nginx/html;
+        auth_request /oauth2/auth;
+
+        sub_filter_types text/html;
+        sub_filter_once off;
+      #  sub_filter '${auth_given_name}' $auth_given_name;
+      #  sub_filter '${auth_token}' $auth_token;
+    }
+
+
+
+    location = /oauth2/auth {
+        # Debug headers
+        add_header X-Debug-Token $cookie_oauth2_token;
+        add_header X-Debug-Auth $http_authorization;
+
+        # Set variables for user info
+        # auth_request_set $auth_given_name $upstream_http_given_name;
+        # auth_request_set $auth_token $cookie_oauth2_token;
