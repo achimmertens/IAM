@@ -8,7 +8,8 @@ services:
      - POSTGRES_USER=midpoint
      - POSTGRES_INITDB_ARGS=--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8
     networks:
-     - net
+      net:
+        ipv4_address: 10.89.0.13
     volumes:
      - midpoint_data:/var/lib/postgresql/data
      - ./:/backup:Z
@@ -32,7 +33,7 @@ services:
     environment:
      - MP_SET_midpoint_repository_jdbcUsername=midpoint
      - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
-     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
+     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://10.89.0.13:5432/midpoint
      - MP_SET_midpoint_repository_database=postgresql
      - MP_INIT_CFG=/opt/midpoint/var
     networks:
@@ -53,20 +54,21 @@ services:
     environment:
      - MP_SET_midpoint_repository_jdbcUsername=midpoint
      - MP_SET_midpoint_repository_jdbcPassword=db.secret.pw.007
-     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://midpoint_data:5432/midpoint
+     - MP_SET_midpoint_repository_jdbcUrl=jdbc:postgresql://10.89.0.13:5432/midpoint
      - MP_SET_midpoint_repository_database=postgresql
      - MP_SET_midpoint_administrator_initialPassword=Test5ecr3t
      - MP_UNSET_midpoint_repository_hibernateHbm2ddl=1
      - MP_NO_ENV_COMPAT=1
     networks:
-     - net
+      net:
+        ipv4_address: 10.89.0.14
     volumes:
      - midpoint_home:/opt/midpoint/var
      - ./:/opt/midpoint/var/import:Z
 
   midpoint_restore:
     image: evolveum/midpoint:${MP_VER:-latest}-alpine
-    command: 
+    command:
       - /bin/bash
       - -c
       - |
@@ -101,6 +103,10 @@ services:
 networks:
   net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
+          gateway: 10.89.0.1
 
 volumes:
   midpoint_data:

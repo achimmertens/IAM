@@ -127,3 +127,8 @@
 2025/07/16 10:12:31 [info] 24#24: *9 client 10.89.0.12 closed keepalive connection
 2025/07/18 06:12:30 [warn] 1#1: duplicate MIME type "text/html" in /etc/nginx/sites-enabled/default.conf:20
 2025/07/18 06:13:12 [info] 24#24: *1 client 10.89.0.7 closed keepalive connection
+2025/07/29 10:59:13 [emerg] 1#1: invalid number of the map parameters in /etc/nginx/nginx.conf:31
+2025/07/29 11:00:48 [emerg] 1#1: invalid number of the map parameters in /etc/nginx/nginx.conf:31
+2025/07/29 11:51:24 [emerg] 1#1: invalid number of the map parameters in /etc/nginx/nginx.conf:31
+2025/07/29 11:54:54 [warn] 1#1: duplicate MIME type "text/html" in /etc/nginx/sites-enabled/default.conf:20
+2025/08/07 06:16:03 [warn] 1#1: duplicate MIME type "text/html" in /etc/nginx/sites-enabled/default.conf:20

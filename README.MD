@@ -12,3 +12,5 @@ Mit Strg+Shift+p den Befehl "Run Tasks" eingeben und dann "Start All Services" a
 
 IP-Adressen überprüfen:
 podman inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(podman ps -q)
+
+Im Keycloak muss die Verbindung zum LDAPserver angepasst werden. Schaue dazu in die Datei "keycloak.env" und trage die IP Adresse in das LDAP-Federation Feld ein.
