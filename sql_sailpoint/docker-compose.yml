@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  sql_sailpoint:
+    image: postgres:latest  # Passe ggf. auf deinen Image-Namen an
+    container_name: SQL_Sailpoint
+    networks:
+      sailpoint_net:
+        ipv4_address: 10.89.0.20
+    environment:
+      POSTGRES_USER: sailpoint
+      POSTGRES_PASSWORD: supersecurepass
+      POSTGRES_DB: sailpoint_db
+    ports:
+      - "5432:5432" # Damit du von außen zugreifen kannst
+
+networks:
+  sailpoint_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
